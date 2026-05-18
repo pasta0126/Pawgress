@@ -1,0 +1,14 @@
+{
+  "baseUrl": "https://plane.northernarchive.com",
+  "workspaceSlug": "northern-archive",
+  "projectId": "b2fcc3c4-c580-4bda-97c2-3365988da60c",
+  "apiTokenEnvVar": "PLANE_API_TOKEN",
+  "states": {
+    "backlog":     "8c19c7ac-c2b3-4532-abeb-3e7b87b7a26b",
+    "todo":        "c0bc69b8-3f99-4060-958e-fdbbcf60cf0d",
+    "in_progress": "d5e86e8b-5cd6-4c77-954c-00626ba7c959",
+    "done":        "2994d4c9-395c-4a07-bf3d-db7c820d486b",
+    "cancelled":   "212a50c7-e6d2-4fbf-9925-35d6f36502a8",
+    "blocked":     "87f63ae5-1424-4bd3-ba48-1195e5d60904"
+  }
+}
