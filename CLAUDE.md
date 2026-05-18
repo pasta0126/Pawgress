@@ -8,7 +8,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-Early initialization phase — no source code exists yet. Tech stack, build system, and directory structure are not yet defined.
+Active development — Tauri v2 + React + TypeScript + Vite scaffold initialized.
+
+## Tech Stack
+
+- **Backend**: Rust (edition 2021), Tauri v2
+- **Frontend**: React 19, TypeScript 5.8, Vite 7
+- **IPC**: Tauri commands/events (`src-tauri/src/lib.rs` → `src/`)
+- **Build**: `npm run tauri dev` (dev), `npm run tauri build` (release)
+
+## Directory Structure
+
+```
+src/           React frontend (components, animations, UI state)
+src-tauri/     Rust backend (Tauri commands, state machine, activity hooks)
+  src/
+    lib.rs     Library entry point — Tauri builder, command registration
+    main.rs    Binary entry point (thin wrapper)
+  Cargo.toml   Rust dependencies
+  tauri.conf.json  App config (window, bundle, identifier)
+public/        Static assets
+```
 
 ## Core Architecture (Planned)
 

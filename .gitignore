@@ -30,7 +30,7 @@ Thumbs.db
 desktop.ini
 
 # Editors
-.vscode/
+.vscode/*
 !.vscode/extensions.json
 .idea/
 *.suo
@@ -64,3 +64,5 @@ coverage/
 # OMC ephemeral state
 .omc/sessions/
 .omc/state/
+
+dist-ssr
