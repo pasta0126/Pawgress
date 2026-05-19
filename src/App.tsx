@@ -19,10 +19,9 @@ const BURST_DURATION  = 1200;
 
 const PETS = [
   { id: "lumi",    label: "Lumi",    available: true },
-  { id: "bytee",   label: "Bytee",   available: true },
-  { id: "cthulhy", label: "Cthulhy", available: true },
+  { id: "cthulhy", label: "Cthulhu", available: true },
   { id: "pedri",   label: "Pedri",   available: true },
-  { id: "galaxy",  label: "Galaxy",  available: true },
+  { id: "bytee",   label: "Bytee",   available: false },
 ];
 
 const EMOTION_ICON: Record<EmotionalState, string> = {
@@ -54,9 +53,10 @@ export default function App() {
   const [activity, setActivity] = useState<ActivitySnapshot>(DEFAULT_ACTIVITY);
   const [pet, setPet]           = useState<PetState>(DEFAULT_PET);
   const [panel, setPanel]       = useState<Panel>(null);
-  const [activePet, setActivePet]     = useState(
-    () => localStorage.getItem("pawgress_active_pet") ?? "lumi"
-  );
+  const [activePet, setActivePet]     = useState(() => {
+    const stored = localStorage.getItem("pawgress_active_pet") ?? "lumi";
+    return PETS.some(p => p.id === stored && p.available) ? stored : "lumi";
+  });
   const [pendingPet, setPendingPet]   = useState<string | null>(null);
   const [alwaysOnTop, setAlwaysOnTop] = useState(false);
   const [isBurst, setIsBurst]         = useState(false);
