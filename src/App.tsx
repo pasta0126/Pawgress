@@ -54,7 +54,9 @@ export default function App() {
   const [activity, setActivity] = useState<ActivitySnapshot>(DEFAULT_ACTIVITY);
   const [pet, setPet]           = useState<PetState>(DEFAULT_PET);
   const [panel, setPanel]       = useState<Panel>(null);
-  const [activePet, setActivePet]     = useState("lumi");
+  const [activePet, setActivePet]     = useState(
+    () => localStorage.getItem("pawgress_active_pet") ?? "lumi"
+  );
   const [pendingPet, setPendingPet]   = useState<string | null>(null);
   const [alwaysOnTop, setAlwaysOnTop] = useState(false);
   const [isBurst, setIsBurst]         = useState(false);
@@ -104,6 +106,7 @@ export default function App() {
   async function confirmSwitch() {
     if (!pendingPet) return;
     try { await invoke("reset_pet_state"); } catch { /* dev */ }
+    localStorage.setItem("pawgress_active_pet", pendingPet);
     setActivePet(pendingPet);
     setPendingPet(null);
     setPanel(null);

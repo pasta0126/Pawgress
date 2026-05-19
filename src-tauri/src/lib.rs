@@ -45,6 +45,7 @@ pub fn run() {
     let pet_for_setup = shared_pet.clone();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .manage(ActivityShared(shared_activity))
