@@ -206,7 +206,7 @@ export default function App() {
             <button className="close-app-btn" onClick={handleClose}>
               × Close Pawgress
             </button>
-            <span className="cfg-version">v0.2.0</span>
+            <span className="cfg-version">v0.2.1</span>
           </div>
         )}
 
