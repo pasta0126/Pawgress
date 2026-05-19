@@ -58,6 +58,12 @@ coverage/
 *.tmp
 *.bak
 
+# Local Cargo config (machine-specific paths)
+.cargo/
+
+# Source 3D models — deployed copies live in public/
+doc/3dmodels/
+
 # Claude Code local settings (may contain API tokens)
 .claude/settings.local.json
 

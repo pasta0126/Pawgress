@@ -1,0 +1,96 @@
+.lumi-svg {
+  animation: lumi-breathe 3.2s ease-in-out infinite;
+  transform-origin: bottom center;
+  overflow: visible;
+}
+
+@keyframes lumi-breathe {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-4px); }
+}
+
+/* Antler glow pulse */
+.lumi-antlers {
+  animation: antler-pulse 2.5s ease-in-out infinite;
+}
+@keyframes antler-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+.lumi-emotion-tired .lumi-antlers {
+  animation: antler-pulse-dim 3.5s ease-in-out infinite;
+}
+@keyframes antler-pulse-dim {
+  0%, 100% { opacity: 0.45; }
+  50%       { opacity: 0.25; }
+}
+.lumi-emotion-excited .lumi-antlers {
+  animation: antler-pulse-bright 1.4s ease-in-out infinite;
+}
+@keyframes antler-pulse-bright {
+  0%, 100% { opacity: 1; filter: url(#l-antler-glow) brightness(1.3); }
+  50%       { opacity: 0.8; }
+}
+
+/* Tail glow pulse */
+.tail-tip,
+.tail-glow {
+  animation: tail-pulse 2.2s ease-in-out infinite;
+}
+@keyframes tail-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.38; }
+}
+.lumi-emotion-tired .tail-tip,
+.lumi-emotion-tired .tail-glow {
+  animation: tail-pulse-dim 3.5s ease-in-out infinite;
+}
+@keyframes tail-pulse-dim {
+  0%, 100% { opacity: 0.32; }
+  50%       { opacity: 0.18; }
+}
+
+/* Eye blink */
+.lumi-eye {
+  animation: lumi-blink 5.5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.lumi-eye-right {
+  animation-delay: 0.06s;
+}
+@keyframes lumi-blink {
+  0%, 86%, 100% { transform: scaleY(1); }
+  91%            { transform: scaleY(0.08); }
+}
+
+/* Star pendant float */
+.lumi-pendant {
+  animation: pendant-float 2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center top;
+}
+@keyframes pendant-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-2px); }
+}
+
+/* Excited sparkles */
+.lumi-sparkles {
+  animation: sparkle-fade 1.4s ease-in-out infinite;
+}
+@keyframes sparkle-fade {
+  0%, 100% { opacity: 0.45; }
+  50%       { opacity: 1; }
+}
+
+/* Typing: body does a tiny bounce */
+.lumi-typing {
+  animation: lumi-breathe 3.2s ease-in-out infinite,
+             lumi-typing-bounce 0.15s ease-in-out;
+}
+@keyframes lumi-typing-bounce {
+  0%   { transform: translateY(0); }
+  40%  { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}

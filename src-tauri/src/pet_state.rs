@@ -26,10 +26,10 @@ impl Default for PetStats {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum EmotionalState {
+    Excited,
     Happy,
     Neutral,
     Tired,
-    Excited,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -40,28 +40,53 @@ pub struct PetState {
 
 impl Default for PetState {
     fn default() -> Self {
-        Self {
+        let mut s = Self {
             stats: PetStats::default(),
             emotion: EmotionalState::Neutral,
-        }
+        };
+        s.resolve_emotion();
+        s
     }
 }
 
 impl PetState {
-    pub fn apply_activity(&mut self) {
-        // TODO: increase xp and mood on activity events
+    pub fn apply_activity(&mut self, keystrokes_delta: u64, clicks_delta: u64) {
+        let ks = keystrokes_delta as f32;
+        let cl = clicks_delta as f32;
+
+        self.stats.xp += keystrokes_delta as u32 + clicks_delta as u32 * 2;
+        // Engagement boosts mood, capped per tick to avoid spikes
+        self.stats.mood = (self.stats.mood + (ks * 0.15 + cl * 0.5).min(3.0)).min(100.0);
+        // Working makes the gotchi hungry
+        self.stats.hunger = (self.stats.hunger - (ks * 0.03 + cl * 0.1).min(1.5)).max(0.0);
+        self.stats.last_updated = Utc::now();
     }
 
-    pub fn apply_decay(&mut self, _elapsed_secs: f32) {
-        // TODO: time-based stat decay (issue #7)
+    pub fn apply_decay(&mut self, elapsed_secs: f32, is_idle: bool) {
+        // Hunger always drains (~33 min from full to empty at rest)
+        self.stats.hunger = (self.stats.hunger - elapsed_secs * 0.05).max(0.0);
+
+        if is_idle {
+            // Resting recovers energy but boredom erodes mood
+            self.stats.energy = (self.stats.energy + elapsed_secs * 0.3).min(100.0);
+            self.stats.mood = (self.stats.mood - elapsed_secs * 0.08).max(0.0);
+        } else {
+            // Working slowly drains energy
+            self.stats.energy = (self.stats.energy - elapsed_secs * 0.04).max(0.0);
+        }
+
+        self.stats.last_updated = Utc::now();
     }
 
     pub fn resolve_emotion(&mut self) {
-        self.emotion = match self.stats.mood {
-            m if m >= 80.0 => EmotionalState::Happy,
-            m if m >= 60.0 => EmotionalState::Neutral,
-            m if m >= 40.0 => EmotionalState::Tired,
-            _ => EmotionalState::Tired,
+        self.emotion = if self.stats.mood >= 85.0 && self.stats.energy > 60.0 {
+            EmotionalState::Excited
+        } else if self.stats.mood >= 65.0 {
+            EmotionalState::Happy
+        } else if self.stats.mood >= 40.0 {
+            EmotionalState::Neutral
+        } else {
+            EmotionalState::Tired
         };
     }
 }
