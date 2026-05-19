@@ -28,12 +28,21 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: "./src-tauri -> target"
+          # Include tauri.conf.json in the cache key so any version bump
+          # causes a cache miss and forces a clean recompile with the new version
+          key: ${{ hashFiles('src-tauri/tauri.conf.json') }}
 
       - name: Install frontend deps
         run: npm ci
 
-      - name: Clean stale Tauri bundles
-        run: rm -rf src-tauri/target/universal-apple-darwin/release/bundle
+      - name: Clean stale Tauri bundles and build fingerprints
+        run: |
+          # Remove old DMG bundle
+          rm -rf src-tauri/target/universal-apple-darwin/release/bundle
+          # Remove pawgress build fingerprints across all target triples so
+          # tauri.conf.json version is always re-embedded into the binary
+          find src-tauri/target -maxdepth 6 -path "*/release/build/pawgress*" \
+            -exec rm -rf {} + 2>/dev/null || true
 
       - name: Build macOS universal app
         run: npm run tauri build -- --target universal-apple-darwin

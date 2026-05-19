@@ -13,11 +13,17 @@ $tauriConf = Get-Content (Join-Path $RepoRoot "src-tauri\tauri.conf.json") | Con
 $version   = $tauriConf.version
 Write-Host "Building Pawgress v$version for Windows..." -ForegroundColor Cyan
 
-# Clean old bundle output so stale installers from previous versions never get copied
+# Remove old bundle output and pawgress build fingerprints so the version in
+# tauri.conf.json is always re-embedded into the binary before packaging
 if (Test-Path $BundleDir) {
     Write-Host "Cleaning old bundle..." -ForegroundColor DarkGray
     Remove-Item "$BundleDir\nsis" -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item "$BundleDir\msi"  -Recurse -Force -ErrorAction SilentlyContinue
+}
+$BuildDir = Join-Path $RepoRoot "src-tauri\target\release\build"
+if (Test-Path $BuildDir) {
+    Get-ChildItem $BuildDir -Filter "pawgress*" -Directory -ErrorAction SilentlyContinue |
+        Remove-Item -Recurse -Force
 }
 
 # Build
