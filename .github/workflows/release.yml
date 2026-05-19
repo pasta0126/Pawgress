@@ -32,6 +32,9 @@ jobs:
       - name: Install frontend deps
         run: npm ci
 
+      - name: Clean stale Tauri bundles
+        run: rm -rf src-tauri/target/universal-apple-darwin/release/bundle
+
       - name: Build macOS universal app
         run: npm run tauri build -- --target universal-apple-darwin
 

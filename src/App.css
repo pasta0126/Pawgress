@@ -286,6 +286,13 @@ body, html, #root {
 }
 .close-app-btn:hover { background: rgba(255,80,80,0.14); border-color: rgba(255,80,80,0.35); color: #ff8080; }
 
+.cfg-version {
+  font-size: 9px;
+  color: #3a3a55;
+  text-align: center;
+  letter-spacing: 0.08em;
+}
+
 /* ── Companion-switch confirmation ── */
 
 .confirm-overlay {
