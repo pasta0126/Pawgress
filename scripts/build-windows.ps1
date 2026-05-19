@@ -3,7 +3,7 @@
 
 $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path $PSScriptRoot -Parent
-$OutDir   = Join-Path $RepoRoot "release\windows"
+$OutDir   = Join-Path $HOME "pawgress_executables\windows"
 
 Set-Location $RepoRoot
 

@@ -7,17 +7,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: windows-latest
-            args: ""
-          - platform: self-hosted
-            args: "--target universal-apple-darwin"
-
-    runs-on: ${{ matrix.platform }}
+  build-mac:
+    runs-on: self-hosted
 
     steps:
       - uses: actions/checkout@v4
@@ -28,10 +19,10 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install Rust stable
+      - name: Install Rust stable + universal targets
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -41,14 +32,15 @@ jobs:
       - name: Install frontend deps
         run: npm ci
 
-      - name: Build Tauri app
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "Pawgress ${{ github.ref_name }}"
-          releaseBody: "See the assets below to download this version."
-          releaseDraft: true
-          prerelease: false
-          args: ${{ matrix.args }}
+      - name: Build macOS universal app
+        run: npm run tauri build -- --target universal-apple-darwin
+
+      - name: Copy DMG to pawgress_executables
+        shell: bash
+        run: |
+          OUT="$HOME/pawgress_executables/mac"
+          mkdir -p "$OUT"
+          find src-tauri/target/universal-apple-darwin/release/bundle/dmg -name "*.dmg" \
+            -exec cp {} "$OUT/" \;
+          echo "DMG copied to $OUT"
+          ls -lh "$OUT"
