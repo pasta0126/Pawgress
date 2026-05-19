@@ -70,5 +70,6 @@ doc/3dmodels/
 # OMC ephemeral state
 .omc/sessions/
 .omc/state/
+.omc/project-memory.json
 
 dist-ssr
