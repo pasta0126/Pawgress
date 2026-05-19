@@ -23,6 +23,18 @@ fn get_pet_state(state: tauri::State<PetStateShared>) -> pet_state::PetState {
     state.0.lock().unwrap().clone()
 }
 
+#[tauri::command]
+fn reset_pet_state(state: tauri::State<PetStateShared>, app: tauri::AppHandle) {
+    let fresh = pet_state::PetState::default();
+    *state.0.lock().unwrap() = fresh.clone();
+    if let Ok(store) = app.store(STORE_FILE) {
+        if let Ok(value) = serde_json::to_value(&fresh) {
+            store.set(STORE_KEY, value);
+            store.save().ok();
+        }
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let shared_activity = Arc::new(Mutex::new(activity::ActivityState::default()));
@@ -97,7 +109,7 @@ pub fn run() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![get_activity, get_pet_state])
+        .invoke_handler(tauri::generate_handler![get_activity, get_pet_state, reset_pet_state])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

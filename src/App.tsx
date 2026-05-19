@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { getCurrentWindow, primaryMonitor } from "@tauri-apps/api/window";
-import { LogicalPosition } from "@tauri-apps/api/dpi";
+import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import LumiScene, { type EmotionalState } from "./components/LumiScene";
 import "./App.css";
 
@@ -55,6 +55,7 @@ export default function App() {
   const [pet, setPet]           = useState<PetState>(DEFAULT_PET);
   const [panel, setPanel]       = useState<Panel>(null);
   const [activePet, setActivePet]     = useState("lumi");
+  const [pendingPet, setPendingPet]   = useState<string | null>(null);
   const [alwaysOnTop, setAlwaysOnTop] = useState(false);
   const [isBurst, setIsBurst]         = useState(false);
   const prevKeys   = useRef(0);
@@ -100,18 +101,12 @@ export default function App() {
     try { await getCurrentWindow().setAlwaysOnTop(next); } catch { /* dev */ }
   }
 
-  async function handleSnapToTaskbar() {
-    try {
-      const monitor = await primaryMonitor();
-      if (!monitor) return;
-      const sf = monitor.scaleFactor;
-      const mw = monitor.size.width  / sf;
-      const mh = monitor.size.height / sf;
-      await getCurrentWindow().setPosition(new LogicalPosition(
-        Math.round((mw - 280) / 2),
-        Math.round(mh - 48 - 360),
-      ));
-    } catch { /* dev */ }
+  async function confirmSwitch() {
+    if (!pendingPet) return;
+    try { await invoke("reset_pet_state"); } catch { /* dev */ }
+    setActivePet(pendingPet);
+    setPendingPet(null);
+    setPanel(null);
   }
 
   function togglePanel(p: Panel) {
@@ -184,7 +179,7 @@ export default function App() {
                   <button
                     key={p.id}
                     className={`pet-btn ${activePet === p.id ? "active" : ""} ${!p.available ? "locked" : ""}`}
-                    onClick={() => p.available && setActivePet(p.id)}
+                    onClick={() => { if (p.available && p.id !== activePet) setPendingPet(p.id); }}
                     title={p.available ? p.label : `${p.label} — coming soon`}
                   >
                     <span className="pet-btn-name">{p.label}</span>
@@ -202,14 +197,29 @@ export default function App() {
                   {alwaysOnTop ? "ON" : "OFF"}
                 </button>
               </label>
-              <button className="cfg-action" onClick={handleSnapToTaskbar}>
-                ↙ Snap to taskbar
-              </button>
+
             </div>
 
             <button className="close-app-btn" onClick={handleClose}>
               × Close Pawgress
             </button>
+          </div>
+        )}
+
+        {/* ── Companion-switch confirmation ── */}
+        {pendingPet !== null && (
+          <div className="confirm-overlay" onMouseDown={stopProp}>
+            <div className="confirm-box">
+              <p className="confirm-title">Change companion?</p>
+              <p className="confirm-msg">
+                Switching to <strong>{PETS.find(p => p.id === pendingPet)?.label}</strong> will
+                reset your current pet's progress and level.
+              </p>
+              <div className="confirm-btns">
+                <button className="confirm-cancel" onClick={() => setPendingPet(null)}>Cancel</button>
+                <button className="confirm-ok" onClick={confirmSwitch}>Switch</button>
+              </div>
+            </div>
           </div>
         )}
 

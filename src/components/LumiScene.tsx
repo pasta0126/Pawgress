@@ -164,9 +164,7 @@ function Model({ emotion, isBurst, petId }: Props) {
       : Math.max(burstDecay.current - dt * 1.6, 0);
     const wave = burstDecay.current > 0 ? Math.sin(t * 5) * 0.010 * burstDecay.current : 0;
 
-    // Slow peaceful breathing (~3.5 s period)
-    const breath = (Math.sin(t * 0.28 * Math.PI * 2) + 1) * 0.5;
-    ref.current.scale.set(1 + breath * 0.004, 1 + breath * 0.009, 1 + breath * 0.004);
+    ref.current.scale.set(1, 1, 1);
     ref.current.position.y = -0.08 + wave;
 
     ref.current.rotation.z = THREE.MathUtils.lerp(ref.current.rotation.z, 0, 0.08);
@@ -193,9 +191,10 @@ export default function LumiScene({ emotion, isBurst, petId }: Props) {
   return (
     <Canvas
       camera={{ position: [0, 0, 2.6], fov: 42 }}
-      gl={{ alpha: true, antialias: true }}
+      gl={{ alpha: true, antialias: true, premultipliedAlpha: false }}
       dpr={Math.min(window.devicePixelRatio, 2)}
       style={{ background: "transparent", pointerEvents: "none" }}
+      onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
     >
       <directionalLight position={[-2, 3, 2]} intensity={0.9} color={0xfff4e0} />
       <directionalLight position={[2, 0, 1]}  intensity={0.45} color={0xb095f0} />

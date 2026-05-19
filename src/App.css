@@ -1,6 +1,6 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body, html {
+body, html, #root {
   background: transparent;
   overflow: hidden;
   font-family: "Segoe UI", system-ui, sans-serif;
@@ -33,19 +33,21 @@ body, html {
   height: 100% !important;
 }
 
-/* ── HUD — bottom center ── */
+/* ── HUD — top left (hover-reveal) ── */
 
 .pet-hud {
   position: absolute;
-  bottom: 14px;
-  left: 0;
-  right: 0;
+  top: 10px;
+  left: 10px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
-  gap: 7px;
+  gap: 5px;
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.22s ease;
 }
+.pet-canvas-wrap:hover .pet-hud { opacity: 1; }
 
 .pet-level {
   font-size: 12px;
@@ -67,7 +69,7 @@ body, html {
 .status-dot.active { background: #4ade80; box-shadow: 0 0 5px #4ade80aa; }
 .status-dot.idle   { background: #facc15; box-shadow: 0 0 5px #facc15aa; }
 
-/* ── XP strip — absolute bottom ── */
+/* ── XP strip — absolute bottom (hover-reveal) ── */
 
 .xp-strip {
   position: absolute;
@@ -77,7 +79,10 @@ body, html {
   height: 3px;
   background: rgba(255,255,255,0.06);
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.22s ease;
 }
+.pet-canvas-wrap:hover .xp-strip { opacity: 1; }
 .xp-fill {
   height: 100%;
   background: linear-gradient(90deg, #9b85d4, #c9b4ff);
@@ -280,3 +285,75 @@ body, html {
   transition: all 0.15s;
 }
 .close-app-btn:hover { background: rgba(255,80,80,0.14); border-color: rgba(255,80,80,0.35); color: #ff8080; }
+
+/* ── Companion-switch confirmation ── */
+
+.confirm-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 10, 0.72);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  cursor: default;
+}
+
+.confirm-box {
+  background: rgba(12, 12, 22, 0.96);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 14px;
+  padding: 18px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 220px;
+  text-align: center;
+}
+
+.confirm-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #c9b4ff;
+}
+
+.confirm-msg {
+  font-size: 11px;
+  color: #8888aa;
+  line-height: 1.55;
+}
+.confirm-msg strong { color: #aaaacc; font-weight: 600; }
+
+.confirm-btns {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.confirm-cancel {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 6px;
+  color: #7777aa;
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 5px 14px;
+  transition: all 0.15s;
+}
+.confirm-cancel:hover { border-color: rgba(255,255,255,0.20); color: #aaaacc; }
+
+.confirm-ok {
+  background: rgba(201,180,255,0.15);
+  border: 1px solid #c9b4ff66;
+  border-radius: 6px;
+  color: #c9b4ff;
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 5px 14px;
+  transition: all 0.15s;
+}
+.confirm-ok:hover { background: rgba(201,180,255,0.26); border-color: #c9b4ffaa; }
