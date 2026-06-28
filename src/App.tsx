@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import LumiScene, { type EmotionalState } from "./components/LumiScene";
+import { StatsPanel } from "./components/StatsPanel";
+import { SettingsPanel } from "./components/SettingsPanel";
 import "./App.css";
 
 interface ActivitySnapshot {
@@ -16,6 +18,7 @@ const DEFAULT_PET: PetState = { stats: { hunger: 80, mood: 80, energy: 80, xp: 0
 
 const BURST_THRESHOLD = 20;
 const BURST_DURATION  = 1200;
+const PANEL_W = 300;
 
 const PETS = [
   { id: "lumi",    label: "Lumi",    available: true },
@@ -30,39 +33,41 @@ const EMOTION_ICON: Record<EmotionalState, string> = {
 
 type Panel = "stats" | "settings" | null;
 
-function fmtIdle(secs: number) {
-  if (secs < 60) return `${secs}s`;
-  return `${Math.floor(secs / 60)}m ${secs % 60}s`;
-}
+// Detect which window this instance is rendering in
+let WINDOW_LABEL = "main";
+try { WINDOW_LABEL = getCurrentWindow().label; } catch { /* browser/dev fallback */ }
 
-function StatBar({ label, value, colorClass }: { label: string; value: number; colorClass: string }) {
-  return (
-    <div className="stat-bar-row">
-      <span className="stat-bar-label">{label}</span>
-      <div className="stat-bar-track">
-        <div className={`stat-bar-fill ${colorClass}`} style={{ width: `${Math.round(value)}%` }} />
-      </div>
-      <span className="stat-bar-pct">{Math.round(value)}%</span>
-    </div>
-  );
-}
-
-const stopProp = (e: React.MouseEvent) => e.stopPropagation();
-
+// Route panel windows to their dedicated components
 export default function App() {
+  if (WINDOW_LABEL === "stats-panel")    return <StatsPanel />;
+  if (WINDOW_LABEL === "settings-panel") return <SettingsPanel />;
+  return <MainApp />;
+}
+
+function MainApp() {
   const [activity, setActivity] = useState<ActivitySnapshot>(DEFAULT_ACTIVITY);
   const [pet, setPet]           = useState<PetState>(DEFAULT_PET);
   const [panel, setPanel]       = useState<Panel>(null);
-  const [activePet, setActivePet]     = useState(() => {
+  const [activePet, setActivePet] = useState(() => {
     const stored = localStorage.getItem("pawgress_active_pet") ?? "lumi";
     return PETS.some(p => p.id === stored && p.available) ? stored : "lumi";
   });
-  const [pendingPet, setPendingPet]   = useState<string | null>(null);
-  const [alwaysOnTop, setAlwaysOnTop] = useState(false);
-  const [isBurst, setIsBurst]         = useState(false);
-  const prevKeys   = useRef(0);
-  const burstTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [alwaysOnTop, setAlwaysOnTop] = useState(
+    () => localStorage.getItem("pawgress_always_on_top") === "true"
+  );
+  const [isBurst, setIsBurst] = useState(false);
 
+  const prevKeys    = useRef(0);
+  const burstTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const panelWinRef = useRef<WebviewWindow | null>(null);
+
+  // Apply persisted always-on-top on first mount
+  useEffect(() => {
+    if (alwaysOnTop) getCurrentWindow().setAlwaysOnTop(true).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Tauri event listeners
   useEffect(() => {
     const ua = listen<ActivitySnapshot>("activity-update", (e) => {
       const snap = e.payload;
@@ -76,9 +81,26 @@ export default function App() {
       }
     });
     const up = listen<PetState>("pet-state-update", (e) => setPet(e.payload));
+
+    // Cross-window events from panel windows
+    const unSwitchPet = listen<{ petId: string }>("pawgress:switch-pet", (e) => {
+      setActivePet(e.payload.petId);
+    });
+    const unAlwaysOnTop = listen<{ value: boolean }>("pawgress:toggle-always-on-top", async (e) => {
+      const next = e.payload.value;
+      setAlwaysOnTop(next);
+      try { await getCurrentWindow().setAlwaysOnTop(next); } catch { /* dev */ }
+    });
+    const unCloseApp = listen("pawgress:close-app", async () => {
+      try { await getCurrentWindow().close(); } catch { /* dev */ }
+    });
+
     return () => {
       ua.then((fn) => fn());
       up.then((fn) => fn());
+      unSwitchPet.then((fn) => fn());
+      unAlwaysOnTop.then((fn) => fn());
+      unCloseApp.then((fn) => fn());
       if (burstTimer.current) clearTimeout(burstTimer.current);
     };
   }, []);
@@ -97,30 +119,63 @@ export default function App() {
     try { await getCurrentWindow().close(); } catch { /* dev */ }
   }
 
-  async function handleToggleAlwaysOnTop() {
-    const next = !alwaysOnTop;
-    setAlwaysOnTop(next);
-    try { await getCurrentWindow().setAlwaysOnTop(next); } catch { /* dev */ }
-  }
+  async function togglePanelWindow(p: "stats" | "settings") {
+    // If this panel is already open, close it
+    if (panel === p && panelWinRef.current) {
+      try { await panelWinRef.current.close(); } catch { /* dev */ }
+      panelWinRef.current = null;
+      setPanel(null);
+      return;
+    }
 
-  async function confirmSwitch() {
-    if (!pendingPet) return;
-    try { await invoke("reset_pet_state"); } catch { /* dev */ }
-    localStorage.setItem("pawgress_active_pet", pendingPet);
-    setActivePet(pendingPet);
-    setPendingPet(null);
-    setPanel(null);
-  }
+    // Close any currently open panel first
+    if (panelWinRef.current) {
+      try { await panelWinRef.current.close(); } catch { /* dev */ }
+      panelWinRef.current = null;
+    }
 
-  function togglePanel(p: Panel) {
-    setPanel(cur => cur === p ? null : p);
+    setPanel(p);
+
+    // Calculate position: prefer left of gotchi, fall back to right
+    const mainWin = getCurrentWindow();
+    const [pos, outerSize, factor] = await Promise.all([
+      mainWin.outerPosition(),
+      mainWin.outerSize(),
+      mainWin.scaleFactor(),
+    ]);
+    const mainX = Math.round(pos.x / factor);
+    const mainY = Math.round(pos.y / factor);
+    const mainW = Math.round(outerSize.width / factor);
+    const panelX = mainX > PANEL_W + 8 ? mainX - PANEL_W - 8 : mainX + mainW + 8;
+    const panelH = p === "stats" ? 220 : 340;
+
+    const win = new WebviewWindow(`${p}-panel`, {
+      url: "index.html",
+      width: PANEL_W,
+      height: panelH,
+      x: panelX,
+      y: mainY,
+      transparent: true,
+      decorations: false,
+      alwaysOnTop: true,
+      shadow: false,
+      resizable: false,
+      skipTaskbar: true,
+      title: "Pawgress",
+    });
+
+    panelWinRef.current = win;
+
+    win.once("tauri://destroyed", () => {
+      panelWinRef.current = null;
+      setPanel((cur) => cur === p ? null : cur);
+    });
   }
 
   return (
     <div className="app" onMouseDown={startDrag}>
       <div className="pet-canvas-wrap">
 
-        {/* 3D model — pointer-events disabled inside LumiScene */}
         <LumiScene emotion={pet.emotion} isBurst={isBurst} petId={activePet} />
 
         {/* Bottom HUD: status + level + emotion */}
@@ -130,104 +185,35 @@ export default function App() {
           <span className="pet-emotion">{EMOTION_ICON[pet.emotion]}</span>
         </div>
 
-        {/* XP strip — absolute bottom */}
+        {/* XP strip */}
         <div className="xp-strip">
           <div className="xp-fill" style={{ width: `${xpPct}%` }} />
         </div>
 
-        {/* Hover-reveal controls — top right */}
+        {/* Hover-reveal controls */}
         <div className="pet-controls">
           <button
             className={`ctrl-btn ${panel === "stats" ? "active" : ""}`}
-            onMouseDown={stopProp}
-            onClick={() => togglePanel("stats")}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={() => togglePanelWindow("stats")}
             title="Stats"
           >≡</button>
           <button
             className={`ctrl-btn ${panel === "settings" ? "active" : ""}`}
-            onMouseDown={stopProp}
-            onClick={() => togglePanel("settings")}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={() => togglePanelWindow("settings")}
             title="Settings"
           >⚙</button>
           <button
             className="ctrl-btn close-ctrl"
-            onMouseDown={stopProp}
+            onMouseDown={(e) => e.stopPropagation()}
             onClick={handleClose}
             title="Close"
           >×</button>
         </div>
 
-        {/* ── Floating stats panel ── */}
-        {panel === "stats" && (
-          <div className="floating-panel" onMouseDown={stopProp}>
-            <StatBar label="Mood"   value={pet.stats.mood}   colorClass="bar-mood"   />
-            <StatBar label="Hunger" value={pet.stats.hunger} colorClass="bar-hunger" />
-            <StatBar label="Energy" value={pet.stats.energy} colorClass="bar-energy" />
-            <div className="stats-mini">
-              <span>⌨ {activity.keystrokes.toLocaleString()}</span>
-              <span>🖱 {activity.mouse_moves.toLocaleString()}</span>
-              <span>💤 {fmtIdle(activity.idle_secs)}</span>
-              <span>✦ {pet.stats.xp}/{xpNeeded} xp</span>
-            </div>
-          </div>
-        )}
-
-        {/* ── Floating settings panel ── */}
-        {panel === "settings" && (
-          <div className="floating-panel settings" onMouseDown={stopProp}>
-            <div className="cfg-section">
-              <span className="cfg-label">Companion</span>
-              <div className="pet-selector">
-                {PETS.map((p) => (
-                  <button
-                    key={p.id}
-                    className={`pet-btn ${activePet === p.id ? "active" : ""} ${!p.available ? "locked" : ""}`}
-                    onClick={() => { if (p.available && p.id !== activePet) setPendingPet(p.id); }}
-                    title={p.available ? p.label : `${p.label} — coming soon`}
-                  >
-                    <span className="pet-btn-name">{p.label}</span>
-                    {!p.available && <span className="pet-lock">🔒</span>}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="cfg-section">
-              <span className="cfg-label">Window</span>
-              <label className="cfg-row">
-                <span>Always on top</span>
-                <button className={`toggle-btn ${alwaysOnTop ? "on" : ""}`} onClick={handleToggleAlwaysOnTop}>
-                  {alwaysOnTop ? "ON" : "OFF"}
-                </button>
-              </label>
-
-            </div>
-
-            <button className="close-app-btn" onClick={handleClose}>
-              × Close Pawgress
-            </button>
-            <span className="cfg-version">v0.2.1</span>
-          </div>
-        )}
-
-        {/* ── Companion-switch confirmation ── */}
-        {pendingPet !== null && (
-          <div className="confirm-overlay" onMouseDown={stopProp}>
-            <div className="confirm-box">
-              <p className="confirm-title">Change companion?</p>
-              <p className="confirm-msg">
-                Switching to <strong>{PETS.find(p => p.id === pendingPet)?.label}</strong> will
-                reset your current pet's progress and level.
-              </p>
-              <div className="confirm-btns">
-                <button className="confirm-cancel" onClick={() => setPendingPet(null)}>Cancel</button>
-                <button className="confirm-ok" onClick={confirmSwitch}>Switch</button>
-              </div>
-            </div>
-          </div>
-        )}
-
       </div>
     </div>
   );
 }
+
