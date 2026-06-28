@@ -1,0 +1,34 @@
+# cargo-audit configuration for Pawgress
+# All entries below are transitive dependencies of Tauri v2 or rdev
+# that cannot be updated directly. Each is documented with rationale.
+
+[advisories]
+
+# gtk-rs GTK3 bindings — Linux-only transitive deps from Tauri.
+# Pawgress targets Windows and macOS; these crates are not compiled
+# or executed on supported platforms.
+ignore = [
+    "RUSTSEC-2024-0413",  # atk — unmaintained (Linux/Tauri)
+    "RUSTSEC-2024-0416",  # atk-sys — unmaintained (Linux/Tauri)
+    "RUSTSEC-2024-0412",  # gdk — unmaintained (Linux/Tauri)
+    "RUSTSEC-2024-0418",  # gdk-sys — unmaintained (Linux/Tauri)
+    "RUSTSEC-2024-0411",  # gdkwayland-sys — unmaintained (Linux/Tauri)
+    "RUSTSEC-2024-0417",  # gdkx11 — unmaintained (Linux/Tauri)
+    "RUSTSEC-2024-0414",  # gdkx11-sys — unmaintained (Linux/Tauri)
+    "RUSTSEC-2024-0415",  # gtk — unmaintained (Linux/Tauri)
+    "RUSTSEC-2024-0420",  # gtk-sys — unmaintained (Linux/Tauri)
+    "RUSTSEC-2024-0419",  # gtk3-macros — unmaintained (Linux/Tauri)
+    "RUSTSEC-2024-0429",  # glib VariantStrIter unsound — Linux/Tauri, not called by app code
+
+    # proc-macro-error — unmaintained, transitive dep from rdev/Tauri macros.
+    # Used only at compile time; no runtime exposure.
+    "RUSTSEC-2024-0370",
+
+    # unic-* Unicode crates — unmaintained, transitive deps of Tauri.
+    # Used for identifier parsing, not for processing untrusted input.
+    "RUSTSEC-2025-0081",  # unic-char-property
+    "RUSTSEC-2025-0075",  # unic-char-range
+    "RUSTSEC-2025-0080",  # unic-common
+    "RUSTSEC-2025-0100",  # unic-ucd-ident
+    "RUSTSEC-2025-0098",  # unic-ucd-version
+]

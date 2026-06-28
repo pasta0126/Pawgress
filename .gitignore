@@ -58,8 +58,9 @@ coverage/
 *.tmp
 *.bak
 
-# Local Cargo config (machine-specific paths)
-.cargo/
+# Local Cargo config (machine-specific paths) — but keep audit.toml
+.cargo/*
+!.cargo/audit.toml
 
 # Source 3D models — deployed copies live in public/
 doc/3dmodels/
