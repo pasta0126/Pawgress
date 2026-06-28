@@ -68,8 +68,7 @@ doc/3dmodels/
 .claude/settings.local.json
 
 # OMC ephemeral state
-.omc/sessions/
-.omc/state/
-.omc/project-memory.json
+.omc/
+src-tauri/.omc/
 
 dist-ssr
