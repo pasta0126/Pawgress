@@ -46,6 +46,8 @@ impl ActivityState {
 
     fn record(&mut self, event_type: &EventType) {
         self.last_activity = Instant::now();
+        // Privacy: only event COUNTS are tracked — key identity and mouse position
+        // are intentionally discarded (wildcard _ and .. patterns).
         match event_type {
             EventType::KeyPress(_) => self.keystrokes += 1,
             EventType::MouseMove { .. } => self.mouse_moves += 1,

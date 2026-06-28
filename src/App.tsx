@@ -45,6 +45,9 @@ export default function App() {
 }
 
 function MainApp() {
+  const [consented, setConsented] = useState(
+    () => localStorage.getItem("pawgress_consent_v1") === "true"
+  );
   const [activity, setActivity] = useState<ActivitySnapshot>(DEFAULT_ACTIVITY);
   const [pet, setPet]           = useState<PetState>(DEFAULT_PET);
   const [panel, setPanel]       = useState<Panel>(null);
@@ -113,6 +116,11 @@ function MainApp() {
     const tag = (e.target as HTMLElement).tagName;
     if (tag === "BUTTON" || tag === "INPUT") return;
     try { await getCurrentWindow().startDragging(); } catch { /* dev */ }
+  }
+
+  function handleConsent() {
+    localStorage.setItem("pawgress_consent_v1", "true");
+    setConsented(true);
   }
 
   async function handleClose() {
@@ -211,6 +219,25 @@ function MainApp() {
             title="Close"
           >×</button>
         </div>
+
+        {/* First-run privacy consent */}
+        {!consented && (
+          <div className="consent-overlay" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="consent-box">
+              <p className="consent-title">Before you begin</p>
+              <p className="consent-body">
+                Pawgress counts your <strong>keystrokes and mouse clicks</strong> to keep
+                your companion alive — like steps on a pedometer.
+              </p>
+              <ul className="consent-list">
+                <li>✓ Only totals are tracked — never what you type</li>
+                <li>✓ All data stays on this device</li>
+                <li>✓ Nothing is sent to any server</li>
+              </ul>
+              <button className="consent-btn" onClick={handleConsent}>Got it</button>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

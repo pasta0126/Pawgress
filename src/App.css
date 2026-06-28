@@ -331,6 +331,72 @@ body, html, #root {
   letter-spacing: 0.08em;
 }
 
+/* ── First-run consent overlay ── */
+
+.consent-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 10, 0.85);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 80;
+  cursor: default;
+}
+
+.consent-box {
+  background: rgba(14, 14, 24, 0.97);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 14px;
+  padding: 18px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 230px;
+}
+
+.consent-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #c9b4ff;
+  text-align: center;
+}
+
+.consent-body {
+  font-size: 11px;
+  color: #8888aa;
+  line-height: 1.55;
+}
+.consent-body strong { color: #aaaacc; }
+
+.consent-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+}
+.consent-list li {
+  font-size: 10px;
+  color: #5a8a6a;
+  line-height: 1.4;
+}
+
+.consent-btn {
+  background: rgba(201,180,255,0.15);
+  border: 1px solid #c9b4ff66;
+  border-radius: 7px;
+  color: #c9b4ff;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 7px;
+  margin-top: 2px;
+  transition: all 0.15s;
+}
+.consent-btn:hover { background: rgba(201,180,255,0.26); border-color: #c9b4ffaa; }
+
 /* ── Companion-switch confirmation (inline in settings panel) ── */
 
 .confirm-title {
