@@ -65,6 +65,14 @@ impl PetState {
         self.stats.last_updated = Utc::now();
     }
 
+    pub fn feed(&mut self) {
+        self.stats.hunger = (self.stats.hunger + 25.0).min(100.0);
+        self.stats.energy = (self.stats.energy + 10.0).min(100.0);
+        self.stats.mood   = (self.stats.mood   + 5.0).min(100.0);
+        self.stats.last_updated = Utc::now();
+        self.resolve_emotion();
+    }
+
     pub fn apply_decay(&mut self, elapsed_secs: f32, is_idle: bool) {
         // Hunger always drains (~33 min from full to empty at rest)
         self.stats.hunger = (self.stats.hunger - elapsed_secs * 0.05).max(0.0);

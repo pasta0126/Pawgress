@@ -1,6 +1,6 @@
 [package]
 name = "pawgress"
-version = "0.3.1"
+version = "0.3.2"
 description = "Virtual desktop companion that transforms productivity into a cozy interactive experience"
 authors = ["Northern Archive"]
 edition = "2021"

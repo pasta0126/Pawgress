@@ -24,6 +24,11 @@ fn get_pet_state(state: tauri::State<PetStateShared>) -> pet_state::PetState {
 }
 
 #[tauri::command]
+fn feed_pet(state: tauri::State<PetStateShared>) {
+    state.0.lock().unwrap().feed();
+}
+
+#[tauri::command]
 fn reset_pet_state(state: tauri::State<PetStateShared>, app: tauri::AppHandle) {
     let fresh = pet_state::PetState::default();
     *state.0.lock().unwrap() = fresh.clone();
@@ -110,7 +115,7 @@ pub fn run() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![get_activity, get_pet_state, reset_pet_state])
+        .invoke_handler(tauri::generate_handler![get_activity, get_pet_state, feed_pet, reset_pet_state])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

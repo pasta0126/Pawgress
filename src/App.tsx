@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import LumiScene, { type EmotionalState } from "./components/LumiScene";
@@ -59,6 +60,16 @@ function MainApp() {
     () => localStorage.getItem("pawgress_always_on_top") === "true"
   );
   const [isBurst, setIsBurst] = useState(false);
+  const [lastFeedTime, setLastFeedTime] = useState<number>(() => {
+    const stored = localStorage.getItem("pawgress_last_feed");
+    return stored ? parseInt(stored) : 0;
+  });
+
+  const FEED_COOLDOWN_MS = 30 * 60 * 1000;
+  // cooldownRemaining recalculates on every render (driven by 1s Tauri events)
+  const cooldownRemaining = Math.max(0, lastFeedTime + FEED_COOLDOWN_MS - Date.now());
+  const canFeed = cooldownRemaining === 0;
+  const cooldownMins = Math.ceil(cooldownRemaining / 60000);
 
   const prevClicks  = useRef(0);
   const burstTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -116,6 +127,17 @@ function MainApp() {
     const tag = (e.target as HTMLElement).tagName;
     if (tag === "BUTTON" || tag === "INPUT") return;
     try { await getCurrentWindow().startDragging(); } catch { /* dev */ }
+  }
+
+  async function handleFeed() {
+    if (!canFeed) return;
+    try { await invoke("feed_pet"); } catch { /* dev */ }
+    const now = Date.now();
+    setLastFeedTime(now);
+    localStorage.setItem("pawgress_last_feed", String(now));
+    setIsBurst(true);
+    if (burstTimer.current) clearTimeout(burstTimer.current);
+    burstTimer.current = setTimeout(() => setIsBurst(false), BURST_DURATION);
   }
 
   function handleConsent() {
@@ -186,11 +208,19 @@ function MainApp() {
 
         <LumiScene emotion={pet.emotion} isBurst={isBurst} petId={activePet} />
 
-        {/* Bottom HUD: status + level + emotion */}
+        {/* Bottom HUD: status + level + emotion + feed */}
         <div className="pet-hud">
           <div className={`status-dot ${activity.is_idle ? "idle" : "active"}`} />
           <span className="pet-level">Lv.{pet.stats.level}</span>
           <span className="pet-emotion">{EMOTION_ICON[pet.emotion]}</span>
+          <button
+            className={`feed-btn ${canFeed ? "" : "cooldown"}`}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={handleFeed}
+            title={canFeed ? "Give your companion a break ☕" : `Available in ${cooldownMins}m`}
+          >
+            {canFeed ? "☕" : `${cooldownMins}m`}
+          </button>
         </div>
 
         {/* XP strip */}

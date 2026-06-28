@@ -61,6 +61,30 @@ body, html, #root {
 
 .pet-emotion { font-size: 15px; line-height: 1; }
 
+.feed-btn {
+  background: rgba(10, 10, 18, 0.65);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 99px;
+  color: #c9b4ff;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 1px 7px;
+  line-height: 1.5;
+  transition: all 0.15s;
+  pointer-events: all;
+}
+.feed-btn:hover:not(.cooldown) {
+  border-color: #c9b4ff55;
+  background: rgba(201,180,255,0.12);
+}
+.feed-btn.cooldown {
+  color: #4a4a6a;
+  font-size: 10px;
+  cursor: default;
+  border-color: rgba(255,255,255,0.06);
+}
+
 .status-dot {
   width: 7px;
   height: 7px;

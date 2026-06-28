@@ -108,7 +108,7 @@ export function SettingsPanel() {
           <button className="close-app-btn" onClick={handleCloseApp}>
             × Close Pawgress
           </button>
-          <span className="cfg-version">v0.3.1</span>
+          <span className="cfg-version">v0.3.2</span>
         </>
       )}
     </div>
