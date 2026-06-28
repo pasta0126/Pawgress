@@ -6,27 +6,27 @@ const IDLE_THRESHOLD_SECS: u64 = 30;
 
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct ActivitySnapshot {
-    pub keystrokes: u64,
     pub mouse_moves: u64,
     pub mouse_clicks: u64,
+    pub mouse_scrolls: u64,
     pub idle_secs: u64,
     pub is_idle: bool,
 }
 
 #[derive(Debug)]
 pub struct ActivityState {
-    pub keystrokes: u64,
     pub mouse_moves: u64,
     pub mouse_clicks: u64,
+    pub mouse_scrolls: u64,
     pub last_activity: Instant,
 }
 
 impl Default for ActivityState {
     fn default() -> Self {
         Self {
-            keystrokes: 0,
             mouse_moves: 0,
             mouse_clicks: 0,
+            mouse_scrolls: 0,
             last_activity: Instant::now(),
         }
     }
@@ -36,9 +36,9 @@ impl ActivityState {
     pub fn snapshot(&self) -> ActivitySnapshot {
         let idle_secs = self.last_activity.elapsed().as_secs();
         ActivitySnapshot {
-            keystrokes: self.keystrokes,
             mouse_moves: self.mouse_moves,
             mouse_clicks: self.mouse_clicks,
+            mouse_scrolls: self.mouse_scrolls,
             idle_secs,
             is_idle: idle_secs >= IDLE_THRESHOLD_SECS,
         }
@@ -46,12 +46,13 @@ impl ActivityState {
 
     fn record(&mut self, event_type: &EventType) {
         self.last_activity = Instant::now();
-        // Privacy: only event COUNTS are tracked — key identity and mouse position
-        // are intentionally discarded (wildcard _ and .. patterns).
+        // Privacy: only mouse event COUNTS are tracked — position and button
+        // identity are intentionally discarded (.. and _ patterns).
+        // No keyboard events are monitored.
         match event_type {
-            EventType::KeyPress(_) => self.keystrokes += 1,
-            EventType::MouseMove { .. } => self.mouse_moves += 1,
-            EventType::ButtonPress(_) => self.mouse_clicks += 1,
+            EventType::MouseMove { .. }  => self.mouse_moves += 1,
+            EventType::ButtonPress(_)    => self.mouse_clicks += 1,
+            EventType::Wheel { .. }      => self.mouse_scrolls += 1,
             _ => {}
         }
     }

@@ -3,9 +3,9 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 interface ActivitySnapshot {
-  keystrokes: number;
   mouse_moves: number;
   mouse_clicks: number;
+  mouse_scrolls: number;
   idle_secs: number;
   is_idle: boolean;
 }
@@ -14,7 +14,7 @@ interface PetStats { hunger: number; mood: number; energy: number; xp: number; l
 interface PetState { stats: PetStats; emotion: string; }
 
 const DEFAULT_ACTIVITY: ActivitySnapshot = {
-  keystrokes: 0, mouse_moves: 0, mouse_clicks: 0, idle_secs: 0, is_idle: false,
+  mouse_moves: 0, mouse_clicks: 0, mouse_scrolls: 0, idle_secs: 0, is_idle: false,
 };
 const DEFAULT_PET: PetState = {
   stats: { hunger: 80, mood: 80, energy: 80, xp: 0, level: 1 }, emotion: "Neutral",
@@ -77,8 +77,8 @@ export function StatsPanel() {
       <StatBar label="Energy" value={pet.stats.energy} colorClass="bar-energy" />
 
       <div className="stats-mini">
-        <span>⌨ {activity.keystrokes.toLocaleString()}</span>
-        <span>🖱 {activity.mouse_moves.toLocaleString()}</span>
+        <span>🖱 {activity.mouse_clicks.toLocaleString()} clicks</span>
+        <span>↕ {activity.mouse_scrolls.toLocaleString()} scrolls</span>
         <span>💤 {fmtIdle(activity.idle_secs)}</span>
         <span>✦ {pet.stats.xp}/{xpNeeded} xp</span>
       </div>

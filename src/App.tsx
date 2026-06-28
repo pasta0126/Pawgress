@@ -8,15 +8,15 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import "./App.css";
 
 interface ActivitySnapshot {
-  keystrokes: number; mouse_moves: number; mouse_clicks: number; idle_secs: number; is_idle: boolean;
+  mouse_moves: number; mouse_clicks: number; mouse_scrolls: number; idle_secs: number; is_idle: boolean;
 }
 interface PetStats { hunger: number; mood: number; energy: number; xp: number; level: number; }
 interface PetState { stats: PetStats; emotion: EmotionalState; }
 
-const DEFAULT_ACTIVITY: ActivitySnapshot = { keystrokes: 0, mouse_moves: 0, mouse_clicks: 0, idle_secs: 0, is_idle: false };
+const DEFAULT_ACTIVITY: ActivitySnapshot = { mouse_moves: 0, mouse_clicks: 0, mouse_scrolls: 0, idle_secs: 0, is_idle: false };
 const DEFAULT_PET: PetState = { stats: { hunger: 80, mood: 80, energy: 80, xp: 0, level: 1 }, emotion: "Neutral" };
 
-const BURST_THRESHOLD = 20;
+const BURST_THRESHOLD = 5;   // mouse clicks per tick
 const BURST_DURATION  = 1200;
 const PANEL_W = 300;
 
@@ -60,7 +60,7 @@ function MainApp() {
   );
   const [isBurst, setIsBurst] = useState(false);
 
-  const prevKeys    = useRef(0);
+  const prevClicks  = useRef(0);
   const burstTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const panelWinRef = useRef<WebviewWindow | null>(null);
 
@@ -75,8 +75,8 @@ function MainApp() {
     const ua = listen<ActivitySnapshot>("activity-update", (e) => {
       const snap = e.payload;
       setActivity(snap);
-      const delta = snap.keystrokes - prevKeys.current;
-      prevKeys.current = snap.keystrokes;
+      const delta = snap.mouse_clicks - prevClicks.current;
+      prevClicks.current = snap.mouse_clicks;
       if (delta >= BURST_THRESHOLD) {
         setIsBurst(true);
         if (burstTimer.current) clearTimeout(burstTimer.current);
@@ -226,8 +226,8 @@ function MainApp() {
             <div className="consent-box">
               <p className="consent-title">Before you begin</p>
               <p className="consent-body">
-                Pawgress counts your <strong>keystrokes and mouse clicks</strong> to keep
-                your companion alive — like steps on a pedometer.
+                Pawgress counts your <strong>mouse activity</strong> (clicks, movement,
+                scrolls) to keep your companion alive — like steps on a pedometer.
               </p>
               <ul className="consent-list">
                 <li>✓ Only totals are tracked — never what you type</li>

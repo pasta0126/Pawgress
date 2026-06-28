@@ -50,15 +50,18 @@ impl Default for PetState {
 }
 
 impl PetState {
-    pub fn apply_activity(&mut self, keystrokes_delta: u64, clicks_delta: u64) {
-        let ks = keystrokes_delta as f32;
+    // clicks_delta: mouse button presses since last tick
+    // moves_delta:  mouse movement events since last tick (sampled at 1Hz)
+    pub fn apply_activity(&mut self, clicks_delta: u64, moves_delta: u64) {
         let cl = clicks_delta as f32;
+        let mv = moves_delta as f32;
 
-        self.stats.xp += keystrokes_delta as u32 + clicks_delta as u32 * 2;
-        // Engagement boosts mood, capped per tick to avoid spikes
-        self.stats.mood = (self.stats.mood + (ks * 0.15 + cl * 0.5).min(3.0)).min(100.0);
+        // Clicks earn more XP than passive movement
+        self.stats.xp += clicks_delta as u32 * 3 + (moves_delta / 20) as u32;
+        // Active mouse use boosts mood (capped per tick)
+        self.stats.mood = (self.stats.mood + (cl * 0.8 + mv * 0.01).min(4.0)).min(100.0);
         // Working makes the gotchi hungry
-        self.stats.hunger = (self.stats.hunger - (ks * 0.03 + cl * 0.1).min(1.5)).max(0.0);
+        self.stats.hunger = (self.stats.hunger - (cl * 0.15 + mv * 0.005).min(2.0)).max(0.0);
         self.stats.last_updated = Utc::now();
     }
 

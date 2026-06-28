@@ -67,8 +67,8 @@ pub fn run() {
             tauri::async_runtime::spawn(async move {
                 let mut interval =
                     tokio::time::interval(std::time::Duration::from_secs(1));
-                let mut prev_keystrokes: u64 = 0;
                 let mut prev_clicks: u64 = 0;
+                let mut prev_moves: u64 = 0;
                 let mut tick_count: u32 = 0;
 
                 loop {
@@ -76,15 +76,15 @@ pub fn run() {
                     tick_count += 1;
 
                     let snapshot = activity_for_tick.lock().unwrap().snapshot();
-                    let ks_delta = snapshot.keystrokes.saturating_sub(prev_keystrokes);
                     let cl_delta = snapshot.mouse_clicks.saturating_sub(prev_clicks);
-                    prev_keystrokes = snapshot.keystrokes;
+                    let mv_delta = snapshot.mouse_moves.saturating_sub(prev_moves);
                     prev_clicks = snapshot.mouse_clicks;
+                    prev_moves = snapshot.mouse_moves;
 
                     {
                         let mut pet = pet_for_setup.lock().unwrap();
-                        if ks_delta > 0 || cl_delta > 0 {
-                            pet.apply_activity(ks_delta, cl_delta);
+                        if cl_delta > 0 || mv_delta > 0 {
+                            pet.apply_activity(cl_delta, mv_delta);
                         }
                         pet.apply_decay(1.0, snapshot.is_idle);
                         progression::try_level_up(&mut pet.stats);
