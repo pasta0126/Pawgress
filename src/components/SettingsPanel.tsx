@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { getVersion } from "@tauri-apps/api/app";
 
 const PETS = [
   { id: "lumi",    label: "Lumi",    available: true },
@@ -19,6 +20,11 @@ export function SettingsPanel() {
   const [alwaysOnTop, setAlwaysOnTop] = useState(
     () => localStorage.getItem("pawgress_always_on_top") === "true"
   );
+  const [version, setVersion] = useState("");
+
+  useEffect(() => {
+    getVersion().then(setVersion).catch(() => {});
+  }, []);
 
   async function handleClose() {
     try { await getCurrentWindow().close(); } catch { /* dev */ }
@@ -108,7 +114,7 @@ export function SettingsPanel() {
           <button className="close-app-btn" onClick={handleCloseApp}>
             × Close Pawgress
           </button>
-          <span className="cfg-version">v0.3.2</span>
+          {version && <span className="cfg-version">v{version}</span>}
         </>
       )}
     </div>
