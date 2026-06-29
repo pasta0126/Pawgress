@@ -63,7 +63,7 @@ coverage/
 !.cargo/audit.toml
 
 # Source 3D models — deployed copies live in public/
-doc/3dmodels/
+doc/
 
 # Claude Code local settings (may contain API tokens)
 .claude/settings.local.json

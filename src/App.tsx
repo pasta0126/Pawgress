@@ -22,10 +22,10 @@ const BURST_DURATION  = 1200;
 const PANEL_W = 300;
 
 const PETS = [
-  { id: "lumi",    label: "Lumi",    available: true },
-  { id: "cthulhy", label: "Cthulhu", available: true },
-  { id: "pedri",   label: "Pedri",   available: true },
-  { id: "bytee",   label: "Bytee",   available: false },
+  { id: "bytee",   label: "Bytee",   available: true },
+  { id: "lumi",    label: "Lumi",    available: false },
+  { id: "cthulhy", label: "Cthulhu", available: false },
+  { id: "pedri",   label: "Pedri",   available: false },
 ];
 
 const EMOTION_ICON: Record<EmotionalState, string> = {
