@@ -84,6 +84,16 @@ body, html, #root {
   cursor: default;
   border-color: rgba(255,255,255,0.06);
 }
+.feed-btn.hyperfocus-on {
+  color: #ffd700;
+  border-color: #ffd70066;
+  background: rgba(255,215,0,0.12);
+  animation: hf-pulse 2s ease-in-out infinite;
+}
+@keyframes hf-pulse {
+  0%, 100% { box-shadow: 0 0 4px #ffd70055; }
+  50%       { box-shadow: 0 0 10px #ffd700aa; }
+}
 
 .status-dot {
   width: 7px;
@@ -353,6 +363,178 @@ body, html, #root {
   color: #3a3a55;
   text-align: center;
   letter-spacing: 0.08em;
+}
+
+/* ── Debug button accent ── */
+
+.debug-ctrl { color: #ffa500 !important; }
+.debug-ctrl:hover,
+.debug-ctrl.active { color: #ffcc00 !important; border-color: #ffa50055 !important; background: rgba(255,165,0,0.10) !important; }
+
+/* ── Debug Panel (inline overlay) ── */
+
+.debug-panel {
+  position: absolute;
+  top: 44px;
+  left: 6px;
+  right: 6px;
+  background: rgba(8, 8, 16, 0.90);
+  border: 1px solid rgba(255, 165, 0, 0.28);
+  border-radius: 10px;
+  padding: 8px 10px 10px;
+  backdrop-filter: blur(10px);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: default;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: #e8e8f0;
+  user-select: none;
+}
+
+.dbg-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dbg-title {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #ffa500;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.dbg-size {
+  flex: 1;
+  font-size: 9px;
+  color: #5a5a7a;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.dbg-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 6px;
+}
+
+.dbg-label {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #4a4a6a;
+  margin-bottom: 1px;
+}
+.dbg-anim-name {
+  color: #ffa500;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+.dbg-anims {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.dbg-empty {
+  font-size: 9px;
+  color: #4a4a6a;
+  font-style: italic;
+}
+.dbg-anim-btn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  color: #6666aa;
+  font-size: 9px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 2px 6px;
+  transition: all 0.12s;
+  line-height: 1.5;
+}
+.dbg-anim-btn:hover  { border-color: #ffa50055; color: #ffa500; }
+.dbg-anim-btn.active { border-color: #ffa500;   color: #ffa500; background: rgba(255,165,0,0.12); }
+.dbg-anim-btn.has-save::after { content: "●"; font-size: 6px; color: #4ade80; margin-left: 3px; vertical-align: middle; }
+
+.dbg-row {
+  display: grid;
+  grid-template-columns: 12px 1fr 36px;
+  align-items: center;
+  gap: 6px;
+}
+.dbg-axis {
+  font-size: 9px;
+  font-weight: 700;
+  color: #6666aa;
+  text-align: center;
+}
+.dbg-slider {
+  width: 100%;
+  height: 3px;
+  accent-color: #ffa500;
+  cursor: pointer;
+  padding: 0;
+  border: none;
+  background: none;
+}
+.dbg-val {
+  font-size: 9px;
+  color: #9999cc;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.dbg-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
+}
+.dbg-save-btn {
+  background: rgba(74, 222, 128, 0.10);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  border-radius: 4px;
+  color: #4ade80;
+  font-size: 9px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 3px 8px;
+  transition: all 0.12s;
+  line-height: 1.4;
+}
+.dbg-save-btn:hover { background: rgba(74, 222, 128, 0.20); }
+.dbg-restore-btn {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.12);
+  color: #8888aa;
+  padding: 3px 7px;
+}
+.dbg-restore-btn:hover { background: rgba(255,255,255,0.10); color: #bbbbdd; }
+.dbg-del-btn {
+  background: rgba(255,80,80,0.08);
+  border: 1px solid rgba(255,80,80,0.22);
+  border-radius: 4px;
+  color: #cc6666;
+  font-size: 9px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 3px 7px;
+  transition: all 0.12s;
+  line-height: 1.4;
+}
+.dbg-del-btn:hover { background: rgba(255,80,80,0.18); color: #ff8080; }
+
+.dbg-saved {
+  font-size: 8px;
+  color: #3a6a3a;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
 }
 
 /* ── First-run consent overlay ── */

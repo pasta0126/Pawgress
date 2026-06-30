@@ -16,6 +16,8 @@
         "title": "Pawgress",
         "width": 280,
         "height": 380,
+        "minWidth": 200,
+        "minHeight": 260,
         "transparent": true,
         "decorations": false,
         "resizable": true,
