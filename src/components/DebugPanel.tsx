@@ -5,7 +5,7 @@ import type { AnimOffset } from "./LumiScene";
 
 export type { AnimOffset };
 
-const DEFAULT_OFFSET: AnimOffset = { x: 0, y: 0, scale: 1 };
+const DEFAULT_OFFSET: AnimOffset = { x: 0, y: -1, scale: 1 };
 
 // ── localStorage keys used for cross-window communication ─────────────────
 const LS_FORCE_ANIM   = "pawgress_debug_force_anim";

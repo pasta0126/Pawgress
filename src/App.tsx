@@ -17,7 +17,7 @@ interface PetState { stats: PetStats; emotion: EmotionalState; }
 
 const DEFAULT_ACTIVITY: ActivitySnapshot = { mouse_moves: 0, mouse_clicks: 0, mouse_scrolls: 0, idle_secs: 0, is_idle: false };
 const DEFAULT_PET: PetState = { stats: { hunger: 80, mood: 80, energy: 80, xp: 0, level: 1 }, emotion: "Neutral" };
-const DEFAULT_OFFSET: AnimOffset = { x: 0, y: 0, scale: 1 };
+const DEFAULT_OFFSET: AnimOffset = { x: 0, y: -1, scale: 1 };
 
 const BURST_THRESHOLD     = 5;
 const BURST_DURATION      = 1200;
@@ -160,7 +160,11 @@ function MainApp() {
       try { await getCurrentWindow().setAlwaysOnTop(next); } catch { /* dev */ }
     });
     const unCloseApp = listen("pawgress:close-app", async () => {
-      try { await getCurrentWindow().close(); } catch { /* dev */ }
+      try {
+        if (panelWinRef.current) await panelWinRef.current.close().catch(() => {});
+        if (debugWinRef.current) await debugWinRef.current.close().catch(() => {});
+        await getCurrentWindow().close();
+      } catch { /* dev */ }
     });
 
     return () => {
@@ -223,7 +227,11 @@ function MainApp() {
   }
 
   async function handleClose() {
-    try { await getCurrentWindow().close(); } catch { /* dev */ }
+    try {
+      if (panelWinRef.current) await panelWinRef.current.close().catch(() => {});
+      if (debugWinRef.current) await debugWinRef.current.close().catch(() => {});
+      await getCurrentWindow().close();
+    } catch { /* dev */ }
   }
 
   async function togglePanelWindow(p: "stats" | "settings") {
@@ -368,6 +376,7 @@ function MainApp() {
             onMouseDown={e => e.stopPropagation()}
             onClick={toggleDebugWindow}
             title="Debug Panel"
+            style={{ display: "none" }}
           >🐛</button>
           <button
             className="ctrl-btn close-ctrl"
